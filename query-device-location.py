@@ -198,10 +198,13 @@ def main(args: list[str]):
     canonic_device_id = args[0]
     locations = get_location_data_for_device(canonic_device_id, "")
 
+    traccar = Traccar(environ.get("TRACCAR_HOST"), environ.get("TRACCAR_TOKEN"))
+
     with Store("locations.sqlite3") as store:
         for wrapped in locations:
             location = Location.from_wrapped_location(wrapped, canonic_device_id)
             store.add(location)
+            traccar.add(location)
 
 
 if __name__ == '__main__':
