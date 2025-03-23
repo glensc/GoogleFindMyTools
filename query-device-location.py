@@ -82,7 +82,7 @@ class Store:
 
         row_id = self.insert(
             '''
-            INSERT INTO locations
+            INSERT OR IGNORE INTO locations
             (time, status, is_own_report, accuracy, name, latitude, longitude, altitude, device_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''',
