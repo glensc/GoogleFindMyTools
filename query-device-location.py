@@ -68,7 +68,8 @@ class Store:
         accuracy REAL NOT NULL,
         latitude REAL NOT NULL,
         longitude REAL NOT NULL,
-        altitude REAL NOT NULL
+        altitude REAL NOT NULL,
+        UNIQUE(time, device_id)
     )
     """
 
