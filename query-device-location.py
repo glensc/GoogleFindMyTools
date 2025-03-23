@@ -4,10 +4,12 @@
 #  Copyright © 2024 Leon Böttger. All rights reserved.
 #  Copyright © 2025 Elan Ruusamäe. All rights reserved.
 #
-
+from os import environ
 from datetime import datetime
 from dataclasses import dataclass
 from functools import cached_property
+
+import requests
 
 from NovaApi.ExecuteAction.LocateTracker.decrypted_location import WrappedLocation
 from NovaApi.ExecuteAction.LocateTracker.location_request import get_location_data_for_device
@@ -132,6 +134,62 @@ class Store:
         connection.commit()
 
         return connection
+
+
+class TraccarApiError(Exception):
+    """Exception raised for errors in the Traccar API response."""
+
+    def __init__(self, status_code: int, message: str):
+        self.status_code = status_code
+        self.message = message
+        super().__init__(f"Traccar API Error: {status_code} - {message}")
+
+
+class TraccarResponseError(Exception):
+    """Exception raised for invalid response from Traccar API."""
+
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(f"Traccar Response Error: {message}")
+
+
+class Traccar:
+    def __init__(self, host: str, token: str):
+        self.host = host
+        self.token = token
+
+    def add(self, location: Location):
+        self.request({
+            'timestamp': int(location.time.timestamp()),
+            'deviceid': location.device_id,
+            'lat': location.latitude,
+            'lon': location.longitude,
+            'altitude': location.altitude,
+            'accuracy': location.accuracy,
+        })
+
+    def request(self, params: dict):
+        # OsmAnd protocol port
+        # https://www.traccar.org/osmand/
+        endpoint = f"http://{self.host}:5055"
+        headers = {
+            'Authorization': f'Bearer {self.token}'
+        }
+
+        response = requests.get(
+            endpoint,
+            params=params,
+            headers=headers,
+            timeout=10,
+        )
+
+        if response.status_code != 200:
+            raise TraccarApiError(response.status_code, f"Failed to update location: {response.text}")
+
+        # Check for empty response (Content-Length: 0)
+        content_length = response.headers.get('Content-Length', None)
+        if content_length is None or int(content_length) != 0:
+            raise TraccarResponseError("Unexpected response from server")
 
 
 def main(args: list[str]):
