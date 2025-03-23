@@ -139,9 +139,10 @@ def main(args: list[str]):
     canonic_device_id = args[0]
     locations = get_location_data_for_device(canonic_device_id, "")
 
-    for wrapped in locations:
-        location = Location.from_wrapped_location(wrapped, canonic_device_id)
-        print(location)
+    with Store("locations.sqlite3") as store:
+        for wrapped in locations:
+            location = Location.from_wrapped_location(wrapped, canonic_device_id)
+            store.add(location)
 
 
 if __name__ == '__main__':
