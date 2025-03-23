@@ -4,6 +4,8 @@
 #  Copyright © 2024 Leon Böttger. All rights reserved.
 #  Copyright © 2025 Elan Ruusamäe. All rights reserved.
 #
+from __future__ import annotations
+
 from os import environ
 from datetime import datetime
 from dataclasses import dataclass
