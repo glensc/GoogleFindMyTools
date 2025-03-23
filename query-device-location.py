@@ -7,6 +7,8 @@
 
 from datetime import datetime
 from dataclasses import dataclass
+from functools import cached_property
+
 from NovaApi.ExecuteAction.LocateTracker.decrypted_location import WrappedLocation
 from NovaApi.ExecuteAction.LocateTracker.location_request import get_location_data_for_device
 from ProtoDecoders import Common_pb2, DeviceUpdate_pb2
@@ -52,6 +54,83 @@ class Location:
 
             device_id=canonic_device_id,
         )
+
+
+class Store:
+    CREATE_SCHEMA = """
+    CREATE TABLE IF NOT EXISTS locations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        time TIMESTAMP NOT NULL,
+        device_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        status TEXT NOT NULL,
+        is_own_report INTEGER NOT NULL,
+        accuracy REAL NOT NULL,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        altitude REAL NOT NULL
+    )
+    """
+
+    def __init__(self, path):
+        self.path = path
+
+    def add(self, location: Location):
+        is_own_report = 1 if location.is_own_report else 0
+        time = location.time.isoformat() if isinstance(location.time, datetime) else location.time
+
+        row_id = self.insert(
+            '''
+            INSERT INTO locations
+            (time, status, is_own_report, accuracy, name, latitude, longitude, altitude, device_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''',
+            time,
+            location.status,
+            is_own_report,
+            location.accuracy,
+            location.name,
+            location.latitude,
+            location.longitude,
+            location.altitude,
+            location.device_id
+        )
+
+        return row_id
+
+    def insert(self, sql: str, *args):
+        cursor = self.con.cursor()
+        cursor.execute(sql, args)
+        row_id = cursor.lastrowid
+        self.commit()
+
+        return row_id
+
+    def commit(self):
+        self.connection.commit()
+
+    def close(self):
+        self.connection.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    @cached_property
+    def connection(self):
+        import sqlite3
+
+        return sqlite3.connect(self.path)
+
+    @cached_property
+    def con(self):
+        connection = self.connection
+        connection.cursor().execute(self.CREATE_SCHEMA)
+        connection.commit()
+
+        return connection
 
 
 def main(args: list[str]):
