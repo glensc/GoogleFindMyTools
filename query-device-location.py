@@ -16,9 +16,9 @@ from ProtoDecoders.Common_pb2 import Status
 @dataclass
 class Location:
     time: datetime
-    status: int
+    status: str
     is_own_report: bool
-    accuracy: int
+    accuracy: float
     name: str
 
     latitude: float
