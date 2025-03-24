@@ -156,9 +156,8 @@ class TraccarResponseError(Exception):
 
 
 class Traccar:
-    def __init__(self, host: str, token: str):
+    def __init__(self, host: str):
         self.host = host
-        self.token = token
 
     def add(self, location: Location):
         self.request({
@@ -174,14 +173,10 @@ class Traccar:
         # OsmAnd protocol port
         # https://www.traccar.org/osmand/
         endpoint = f"http://{self.host}:5055"
-        headers = {
-            'Authorization': f'Bearer {self.token}'
-        }
 
         response = requests.get(
             endpoint,
             params=params,
-            headers=headers,
             timeout=10,
         )
 
@@ -200,7 +195,7 @@ def main(args: list[str]):
     canonic_device_id = args[0]
     locations = get_location_data_for_device(canonic_device_id, "")
 
-    traccar = Traccar(environ.get("TRACCAR_HOST"), environ.get("TRACCAR_TOKEN"))
+    traccar = Traccar(environ.get("TRACCAR_HOST"))
 
     with Store("locations.sqlite3") as store:
         for wrapped in locations:
