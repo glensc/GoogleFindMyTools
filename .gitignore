@@ -186,3 +186,8 @@ venv/
 *** Python cache***
 *.pyc  
 # End of https://www.toptal.com/developers/gitignore/api/macos,xcode,swift,swiftpackagemanager,objective-c
+
+/locations.sqlite3
+
+/.direnv
+/.envrc.local

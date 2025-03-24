@@ -91,7 +91,7 @@ def decrypt_location_response_locations(device_update_protobuf):
     for loc, time in zip(network_locations, network_locations_time):
 
         if loc.status == Common_pb2.Status.SEMANTIC:
-            print("Semantic Location Report")
+            # print("Semantic Location Report")
 
             wrapped_location = WrappedLocation(
                 decrypted_location=b'',
@@ -124,6 +124,8 @@ def decrypt_location_response_locations(device_update_protobuf):
             )
             location_time_array.append(wrapped_location)
 
+    return location_time_array
+
     print("-" * 40)
     print("[DecryptLocations] Decrypted Locations:")
 
@@ -154,7 +156,7 @@ def decrypt_location_response_locations(device_update_protobuf):
         print(f"Is Own Report: {loc.is_own_report}")
         print("-" * 40)
 
-    pass
+    return location_time_array
 
 
 if __name__ == '__main__':
